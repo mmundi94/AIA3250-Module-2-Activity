@@ -1,0 +1,1493 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Compliance Risk Assessment Simulator — Nexford University</title>
+
+<!-- =========================================================
+     Brand fonts — Plus Jakarta Sans + DM Mono.
+     No italic font is loaded (per Nexford brand decision).
+========================================================= -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+/* =========================================================
+   1. DESIGN TOKENS (Nexford Brand Kit, Module 2 spec)
+   ========================================================= */
+:root {
+  --nx-yellow: #FFFF02;          /* primary accent (per assignment spec) */
+  --nx-black:  #0A0A0A;
+  --nx-white:  #FFFFFF;
+  --nx-gray-50: #F6F6F7;
+  --nx-gray-100: #ECECEE;
+  --nx-gray-200: #DCDCDF;
+  --nx-gray-300: #C9C9CD;
+  --nx-gray-500: #6B6B72;
+  --nx-gray-700: #2E2E33;
+
+  /* Severity color system — used only as dot/pill accents.
+     Stays neutral/professional, never garish.            */
+  --sev-low:      #1B7A3A;
+  --sev-low-bg:   #E6F4EB;
+  --sev-medium:   #B8860B;
+  --sev-medium-bg:#FBF1D8;
+  --sev-high:     #C2410C;
+  --sev-high-bg:  #FBE9DD;
+  --sev-critical: #B00020;
+  --sev-crit-bg:  #FBEAEC;
+
+  --nx-success: #1B7A3A;
+  --nx-success-bg: #E6F4EB;
+  --nx-error: #B00020;
+  --nx-error-bg: #FBEAEC;
+
+  --nx-radius: 14px;
+  --nx-radius-sm: 8px;
+  --nx-shadow: 0 1px 0 rgba(10,10,10,0.04), 0 8px 24px rgba(10,10,10,0.06);
+  --nx-shadow-lg: 0 1px 0 rgba(10,10,10,0.04), 0 18px 36px rgba(10,10,10,0.10);
+
+  --nx-font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  --nx-font-mono: 'DM Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+/* =========================================================
+   2. BASE
+   ========================================================= */
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  font-family: var(--nx-font-sans);
+  color: var(--nx-black);
+  background: var(--nx-gray-50);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Monospace label per brand spec — used for section labels, metadata */
+.label {
+  font-family: var(--nx-font-mono);
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--nx-gray-500);
+}
+
+/* =========================================================
+   3. HEADER (yellow band + Nexford submark)
+   ========================================================= */
+.nx-header {
+  background: var(--nx-yellow);
+  padding: 18px 28px;
+  border-bottom: 1px solid var(--nx-black);
+}
+.nx-header-inner {
+  max-width: 1180px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.nx-logo { width: 26px; height: 56px; flex-shrink: 0; }
+.nx-wordmark {
+  font-weight: 800;
+  font-size: 18px;
+  line-height: 1.1;
+  color: var(--nx-black);
+}
+.nx-wordmark span { display: block; }
+.nx-course-tag {
+  margin-left: auto;
+  font-family: var(--nx-font-mono);
+  font-size: 11px;
+  background: var(--nx-black);
+  color: var(--nx-yellow);
+  padding: 6px 10px;
+  border-radius: 999px;
+  letter-spacing: 0.04em;
+}
+
+/* =========================================================
+   4. PHASE STEPPER
+   ========================================================= */
+.nx-stepper-wrap {
+  background: var(--nx-white);
+  border-bottom: 1px solid var(--nx-gray-100);
+  padding: 18px 28px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.nx-stepper {
+  max-width: 1180px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.nx-stepper::-webkit-scrollbar { display: none; }
+.nx-step {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: var(--nx-gray-50);
+  border: 1px solid transparent;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--nx-gray-500);
+  white-space: nowrap;
+  transition: all .25s ease;
+  flex-shrink: 0;
+}
+.nx-step .num {
+  font-family: var(--nx-font-mono);
+  font-size: 11px;
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  background: var(--nx-gray-200);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.nx-step.is-active {
+  background: var(--nx-black);
+  color: var(--nx-yellow);
+  border-color: var(--nx-black);
+}
+.nx-step.is-active .num { background: var(--nx-yellow); color: var(--nx-black); }
+.nx-step.is-done {
+  background: var(--nx-gray-100);
+  color: var(--nx-gray-700);
+}
+.nx-step.is-done .num { background: var(--nx-success); color: var(--nx-white); }
+.nx-step .num.done::before { content: "✓"; }
+.nx-step-divider { width: 14px; height: 1px; background: var(--nx-gray-200); flex-shrink: 0; }
+
+/* =========================================================
+   5. STAGE / LAYOUT
+   ========================================================= */
+.nx-stage {
+  max-width: 1180px;
+  margin: 36px auto 80px;
+  padding: 0 28px;
+}
+.nx-card {
+  background: var(--nx-white);
+  border: 1px solid var(--nx-gray-100);
+  border-radius: var(--nx-radius);
+  box-shadow: var(--nx-shadow);
+  padding: 32px;
+}
+.nx-section-head {
+  margin-bottom: 22px;
+}
+.nx-section-head h2 {
+  font-size: 28px;
+  font-weight: 700;
+  margin: 6px 0 6px;
+  letter-spacing: -0.01em;
+}
+.nx-section-head p {
+  margin: 0;
+  color: var(--nx-gray-700);
+  max-width: 760px;
+}
+
+/* Phase wrappers — only one visible at a time, with smooth fade */
+.nx-phase { display: none; animation: fadeUp .35s ease both; }
+.nx-phase.is-visible { display: block; }
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* =========================================================
+   6. INTRO SCREEN
+   ========================================================= */
+.nx-intro-grid {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 28px;
+  align-items: stretch;
+}
+.nx-intro-grid > div { min-width: 0; }
+.nx-intro h1 {
+  font-size: clamp(34px, 5vw, 52px);
+  font-weight: 800;
+  line-height: 1.04;
+  letter-spacing: -0.015em;
+  margin: 12px 0 14px;
+}
+.nx-intro p.lede {
+  font-size: 17px;
+  color: var(--nx-gray-700);
+  margin: 0 0 22px;
+  max-width: 640px;
+}
+.nx-role-card {
+  background: var(--nx-black);
+  color: var(--nx-white);
+  border-radius: var(--nx-radius);
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: relative;
+  overflow: hidden;
+}
+.nx-role-card::after {
+  content: "";
+  position: absolute;
+  right: -60px; top: -60px;
+  width: 220px; height: 220px;
+  background: var(--nx-yellow);
+  border-radius: 50%;
+  opacity: 0.12;
+}
+.nx-role-card .label { color: var(--nx-yellow); }
+.nx-role-card .role-name {
+  font-size: 28px;
+  font-weight: 700;
+  margin: 8px 0 6px;
+}
+.nx-role-card .org-name {
+  font-family: var(--nx-font-mono);
+  font-size: 13px;
+  color: var(--nx-gray-300);
+  margin-bottom: 18px;
+}
+.nx-role-card ul {
+  margin: 0; padding: 0; list-style: none;
+  display: grid;
+  gap: 6px;
+  font-size: 14px;
+  color: var(--nx-gray-300);
+}
+.nx-role-card ul li::before {
+  content: "▸ ";
+  color: var(--nx-yellow);
+  margin-right: 4px;
+}
+
+.nx-objectives {
+  display: grid;
+  gap: 12px;
+  margin: 26px 0 28px;
+}
+.nx-obj {
+  display: flex;
+  gap: 14px;
+  padding: 16px;
+  border: 1px solid var(--nx-gray-100);
+  border-radius: var(--nx-radius-sm);
+  background: var(--nx-gray-50);
+}
+.nx-obj .num {
+  font-family: var(--nx-font-mono);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--nx-gray-500);
+  flex-shrink: 0;
+  width: 28px;
+}
+.nx-obj .text { font-size: 14px; }
+.nx-obj .text strong { font-weight: 700; display: block; margin-bottom: 2px; }
+
+/* =========================================================
+   7. BUTTONS
+   ========================================================= */
+.nx-btn {
+  font-family: var(--nx-font-sans);
+  font-weight: 700;
+  font-size: 15px;
+  padding: 12px 22px;
+  border-radius: 999px;
+  border: 1.5px solid var(--nx-black);
+  background: var(--nx-black);
+  color: var(--nx-yellow);
+  cursor: pointer;
+  transition: transform .15s ease, background .15s ease, color .15s ease, opacity .15s ease;
+}
+.nx-btn:hover:not(:disabled) { transform: translateY(-1px); }
+.nx-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.nx-btn.secondary { background: var(--nx-white); color: var(--nx-black); }
+.nx-btn.yellow { background: var(--nx-yellow); color: var(--nx-black); }
+.nx-actions { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 24px; }
+
+/* =========================================================
+   8. RISK REVIEW (Phase 1) — clickable risk cards
+   ========================================================= */
+.nx-risk-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 16px;
+  margin-top: 8px;
+}
+.nx-risk-card {
+  border: 1.5px solid var(--nx-gray-100);
+  border-radius: var(--nx-radius-sm);
+  padding: 18px;
+  background: var(--nx-white);
+  cursor: pointer;
+  transition: all .2s ease;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.nx-risk-card:hover { border-color: var(--nx-black); transform: translateY(-2px); box-shadow: var(--nx-shadow); }
+.nx-risk-card.is-open { border-color: var(--nx-black); box-shadow: var(--nx-shadow); }
+.nx-risk-card .id {
+  font-family: var(--nx-font-mono);
+  font-size: 11px;
+  color: var(--nx-gray-500);
+  letter-spacing: 0.06em;
+}
+.nx-risk-card .title {
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+.nx-risk-card .toggle {
+  font-family: var(--nx-font-mono);
+  font-size: 11px;
+  color: var(--nx-gray-500);
+  margin-top: auto;
+  padding-top: 8px;
+}
+.nx-risk-card .details {
+  display: none;
+  margin-top: 4px;
+  border-top: 1px dashed var(--nx-gray-200);
+  padding-top: 12px;
+  display: grid;
+  gap: 8px;
+}
+.nx-risk-card:not(.is-open) .details { display: none; }
+.nx-risk-card.is-open .details { display: grid; }
+.nx-risk-card .detail-row { font-size: 13px; }
+.nx-risk-card .detail-row .lbl {
+  font-family: var(--nx-font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--nx-gray-500);
+  display: block;
+  margin-bottom: 2px;
+}
+
+/* Reviewed indicator (when card has been opened at least once) */
+.nx-risk-card.reviewed::before {
+  content: "Reviewed";
+  position: absolute;
+  top: 14px; right: 14px;
+  font-family: var(--nx-font-mono);
+  font-size: 10px;
+  background: var(--nx-success-bg);
+  color: var(--nx-success);
+  padding: 3px 8px;
+  border-radius: 999px;
+}
+
+/* =========================================================
+   9. PRIORITIZATION (Phase 2)
+   ========================================================= */
+.nx-priority-list { display: grid; gap: 14px; margin-top: 8px; }
+.nx-priority-row {
+  border: 1px solid var(--nx-gray-100);
+  border-radius: var(--nx-radius-sm);
+  padding: 18px;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+  background: var(--nx-white);
+}
+.nx-priority-row .risk-name { font-weight: 700; font-size: 15px; }
+.nx-priority-row .risk-meta {
+  font-family: var(--nx-font-mono);
+  font-size: 11px;
+  color: var(--nx-gray-500);
+  letter-spacing: 0.04em;
+  margin-bottom: 4px;
+}
+.nx-priority-row .options { display: flex; gap: 8px; flex-wrap: wrap; }
+
+/* Severity pill buttons */
+.nx-sev-btn {
+  appearance: none;
+  border: 1.5px solid var(--nx-gray-100);
+  background: var(--nx-white);
+  font-family: var(--nx-font-sans);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 14px;
+  border-radius: 999px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: all .18s ease;
+}
+.nx-sev-btn:hover { border-color: var(--nx-black); }
+.nx-sev-btn .dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--nx-gray-300);
+  display: inline-block;
+}
+.nx-sev-btn[data-sev="low"]      .dot { background: var(--sev-low); }
+.nx-sev-btn[data-sev="medium"]   .dot { background: var(--sev-medium); }
+.nx-sev-btn[data-sev="high"]     .dot { background: var(--sev-high); }
+.nx-sev-btn[data-sev="critical"] .dot { background: var(--sev-critical); }
+.nx-sev-btn.is-selected {
+  background: var(--nx-black);
+  color: var(--nx-yellow);
+  border-color: var(--nx-black);
+}
+.nx-sev-btn.is-correct { background: var(--nx-success-bg); color: var(--nx-success); border-color: var(--nx-success); }
+.nx-sev-btn.is-wrong   { background: var(--nx-error-bg);   color: var(--nx-error);   border-color: var(--nx-error); }
+.nx-sev-btn:disabled { cursor: not-allowed; }
+
+/* Inline feedback line under each row, shown after submit */
+.nx-row-feedback {
+  display: none;
+  margin-top: 10px;
+  font-size: 13px;
+  background: var(--nx-gray-50);
+  border-left: 3px solid var(--nx-black);
+  padding: 10px 12px;
+  border-radius: 4px;
+  color: var(--nx-gray-700);
+}
+.nx-priority-row.is-graded .nx-row-feedback { display: block; }
+
+/* =========================================================
+   10. COMPLIANCE MATCHING (Phase 3)
+   ========================================================= */
+.nx-match-list { display: grid; gap: 14px; }
+.nx-match-row {
+  border: 1px solid var(--nx-gray-100);
+  border-radius: var(--nx-radius-sm);
+  padding: 18px;
+  background: var(--nx-white);
+}
+.nx-match-row .scenario {
+  font-weight: 600;
+  font-size: 15px;
+  margin: 4px 0 12px;
+}
+.nx-match-row .options { display: flex; flex-wrap: wrap; gap: 8px; }
+.nx-match-btn {
+  appearance: none;
+  border: 1.5px solid var(--nx-gray-100);
+  background: var(--nx-white);
+  font-family: var(--nx-font-sans);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 9px 14px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: all .18s ease;
+}
+.nx-match-btn:hover { border-color: var(--nx-black); }
+.nx-match-btn.is-selected { background: var(--nx-black); color: var(--nx-yellow); border-color: var(--nx-black); }
+.nx-match-btn.is-correct { background: var(--nx-success-bg); color: var(--nx-success); border-color: var(--nx-success); }
+.nx-match-btn.is-wrong   { background: var(--nx-error-bg);   color: var(--nx-error);   border-color: var(--nx-error); }
+.nx-match-btn:disabled { cursor: not-allowed; }
+
+/* =========================================================
+   11. SECURITY CONTROLS (Phase 4) — multi-select chips
+   ========================================================= */
+.nx-control-row {
+  border: 1px solid var(--nx-gray-100);
+  border-radius: var(--nx-radius-sm);
+  padding: 18px;
+  background: var(--nx-white);
+}
+.nx-control-row .scenario {
+  font-weight: 600;
+  font-size: 15px;
+  margin: 4px 0 6px;
+}
+.nx-control-row .hint {
+  font-family: var(--nx-font-mono);
+  font-size: 11px;
+  color: var(--nx-gray-500);
+  margin-bottom: 10px;
+  letter-spacing: 0.04em;
+}
+.nx-ctrl-chip {
+  appearance: none;
+  border: 1.5px solid var(--nx-gray-100);
+  background: var(--nx-white);
+  font-family: var(--nx-font-sans);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 9px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all .18s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 4px 6px 4px 0;
+}
+.nx-ctrl-chip:hover { border-color: var(--nx-black); }
+.nx-ctrl-chip.is-selected { background: var(--nx-black); color: var(--nx-yellow); border-color: var(--nx-black); }
+.nx-ctrl-chip.is-correct { background: var(--nx-success-bg); color: var(--nx-success); border-color: var(--nx-success); }
+.nx-ctrl-chip.is-wrong   { background: var(--nx-error-bg);   color: var(--nx-error);   border-color: var(--nx-error); }
+.nx-ctrl-chip:disabled { cursor: not-allowed; }
+
+/* =========================================================
+   12. FINAL DASHBOARD (Phase 5)
+   ========================================================= */
+.nx-dash-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  margin-top: 4px;
+}
+.nx-metric-card {
+  background: var(--nx-white);
+  border: 1px solid var(--nx-gray-100);
+  border-radius: var(--nx-radius);
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.nx-metric-card .label { margin-bottom: 0; }
+.nx-metric-card .value {
+  font-size: 44px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+.nx-metric-card .of { color: var(--nx-gray-500); font-size: 13px; }
+.nx-metric-card .bar {
+  height: 6px;
+  background: var(--nx-gray-100);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.nx-metric-card .bar-fill {
+  height: 100%;
+  background: var(--nx-black);
+  border-radius: 999px;
+  width: 0%;
+  transition: width .8s ease;
+}
+.nx-metric-card.accent { background: var(--nx-yellow); border-color: var(--nx-black); }
+.nx-metric-card.accent .label { color: var(--nx-gray-700); }
+.nx-metric-card.accent .of    { color: var(--nx-gray-700); }
+.nx-metric-card.accent .bar   { background: rgba(0,0,0,0.15); }
+.nx-metric-card.accent .bar-fill { background: var(--nx-black); }
+
+.nx-improve-card {
+  margin-top: 22px;
+  background: var(--nx-white);
+  border: 1px solid var(--nx-gray-100);
+  border-radius: var(--nx-radius);
+  padding: 24px;
+}
+.nx-improve-card h3 { margin: 4px 0 12px; font-size: 18px; }
+.nx-improve-list {
+  list-style: none;
+  margin: 0; padding: 0;
+  display: grid;
+  gap: 10px;
+}
+.nx-improve-list li {
+  border-left: 3px solid var(--nx-yellow);
+  background: var(--nx-gray-50);
+  padding: 12px 14px;
+  border-radius: 4px;
+  font-size: 14px;
+}
+.nx-improve-list li.ok { border-left-color: var(--nx-success); }
+
+.nx-takeaway {
+  margin-top: 22px;
+  padding: 22px;
+  border-radius: var(--nx-radius);
+  background: var(--nx-black);
+  color: var(--nx-white);
+}
+.nx-takeaway .label { color: var(--nx-yellow); }
+.nx-takeaway p { margin: 8px 0 0; font-size: 15px; color: var(--nx-gray-300); }
+
+/* =========================================================
+   13. FEEDBACK PANELS (used in Phase 2 + 3 + 4 summary)
+   ========================================================= */
+.nx-summary {
+  display: none;
+  margin-top: 22px;
+  padding: 18px 20px;
+  border-radius: var(--nx-radius-sm);
+  background: var(--nx-gray-50);
+  border: 1px solid var(--nx-gray-100);
+}
+.nx-summary.is-visible { display: block; }
+.nx-summary .verdict {
+  font-family: var(--nx-font-mono);
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--nx-gray-500);
+  margin-bottom: 4px;
+}
+.nx-summary h3 { margin: 0 0 6px; font-size: 17px; }
+
+/* =========================================================
+   14. FOOTER
+   ========================================================= */
+.nx-footer {
+  border-top: 1px solid var(--nx-gray-100);
+  padding: 22px 28px;
+  background: var(--nx-white);
+  text-align: center;
+}
+.nx-footer p {
+  margin: 0;
+  font-family: var(--nx-font-mono);
+  font-size: 12px;
+  color: var(--nx-gray-500);
+  letter-spacing: 0.04em;
+}
+
+/* =========================================================
+   15. RESPONSIVE
+   ========================================================= */
+@media (max-width: 860px) {
+  .nx-intro-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 640px) {
+  .nx-card { padding: 22px; }
+  .nx-stage { padding: 0 18px; margin-bottom: 60px; }
+  .nx-stepper-wrap { padding: 14px 18px; }
+  .nx-header { padding: 14px 18px; }
+  .nx-course-tag { display: none; }
+  .nx-section-head h2 { font-size: 24px; }
+  .nx-step-divider { display: none; }
+  .nx-metric-card .value { font-size: 36px; }
+}
+</style>
+</head>
+<body>
+
+<!-- =========================================================
+     HEADER
+========================================================= -->
+<header class="nx-header" role="banner">
+  <div class="nx-header-inner">
+    <!-- Inline SVG of the Nexford "N" submark (two interlocking strokes) -->
+    <svg class="nx-logo" viewBox="0 0 56 120" aria-label="Nexford University">
+      <g fill="none" stroke="#0A0A0A" stroke-width="9" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M 11 8 V 90 Q 11 104 22 104 Q 33 104 33 90 V 50" />
+        <path d="M 23 70 V 30 Q 23 16 34 16 Q 45 16 45 30 V 112" />
+      </g>
+    </svg>
+    <div class="nx-wordmark">
+      <span>Nexford</span>
+      <span>University</span>
+    </div>
+    <div class="nx-course-tag">AIA3250 · Module 2 · Governance, Risk &amp; Compliance</div>
+  </div>
+</header>
+
+<!-- =========================================================
+     PHASE STEPPER
+========================================================= -->
+<div class="nx-stepper-wrap">
+  <nav class="nx-stepper" id="stepper" aria-label="Simulator phases"></nav>
+</div>
+
+<!-- =========================================================
+     STAGE
+========================================================= -->
+<main class="nx-stage" id="stage">
+
+  <!-- ============ PHASE 0 — INTRO ============ -->
+  <section class="nx-phase nx-intro is-visible" id="phase-0">
+    <div class="nx-intro-grid">
+      <div class="nx-card">
+        <span class="label">Module 2 · Interactive Simulation</span>
+        <h1>Compliance Risk Assessment Simulator</h1>
+        <p class="lede">
+          You are stepping into the role of a Risk and Compliance Officer at a mid-sized
+          healthcare organization. Your job over the next five phases is to review
+          organizational risks, prioritize them, match them to the right regulations, and
+          recommend the security controls that protect the business — not as a hacker,
+          but as a governance professional.
+        </p>
+
+        <span class="label" style="display:block; margin-top:6px;">What you will practice</span>
+        <div class="nx-objectives">
+          <div class="nx-obj"><div class="num">01</div><div class="text"><strong>Identify critical assets and risks</strong>Read each risk and understand the data, impact, and compliance angle.</div></div>
+          <div class="nx-obj"><div class="num">02</div><div class="text"><strong>Evaluate business and regulatory impact</strong>Prioritize risks as Low, Medium, High, or Critical.</div></div>
+          <div class="nx-obj"><div class="num">03</div><div class="text"><strong>Apply security and compliance controls</strong>Match scenarios to HIPAA, PCI DSS, FERPA, or Internal Governance Policy, and pick the right controls.</div></div>
+          <div class="nx-obj"><div class="num">04</div><div class="text"><strong>Monitor, review, and improve</strong>Receive a final governance dashboard with areas to strengthen.</div></div>
+        </div>
+
+        <div class="nx-actions">
+          <button class="nx-btn" id="startBtn">Begin assessment →</button>
+        </div>
+      </div>
+
+      <div class="nx-role-card">
+        <div>
+          <span class="label">Your Role</span>
+          <div class="role-name">Risk &amp; Compliance Officer</div>
+          <div class="org-name">Meridian Health Group · 1,400 employees</div>
+        </div>
+        <ul>
+          <li>Patient medical records (PHI)</li>
+          <li>Employee HR and payroll data</li>
+          <li>Public-facing website &amp; appointment portal</li>
+          <li>Card payments at clinic checkout</li>
+          <li>Nursing trainee academic records</li>
+        </ul>
+        <div style="margin-top: 22px;">
+          <span class="label">Reporting To</span>
+          <div style="font-weight: 700; margin-top: 4px;">Board Audit &amp; Risk Committee</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ PHASE 1 — RISK REVIEW ============ -->
+  <section class="nx-phase" id="phase-1">
+    <div class="nx-card">
+      <div class="nx-section-head">
+        <span class="label">Phase 01 · Risk Review</span>
+        <h2>Review the risk register</h2>
+        <p>Five active risks have been flagged in this quarter's review. Click each card to expand the threat type, data involved, operational impact, and compliance concern. Open all five before continuing.</p>
+      </div>
+      <div class="nx-risk-grid" id="riskGrid"></div>
+      <div class="nx-actions">
+        <button class="nx-btn" id="toPriorityBtn" disabled>Continue to prioritization →</button>
+        <span class="label" id="reviewProgress">0 of 5 reviewed</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ PHASE 2 — PRIORITIZATION ============ -->
+  <section class="nx-phase" id="phase-2">
+    <div class="nx-card">
+      <div class="nx-section-head">
+        <span class="label">Phase 02 · Risk Prioritization</span>
+        <h2>Classify each risk by severity</h2>
+        <p>Use Low, Medium, High, or Critical. Consider data sensitivity, legal obligations, operational importance, and business impact. You will see feedback only after submitting the full set.</p>
+      </div>
+      <div class="nx-priority-list" id="priorityList"></div>
+      <div class="nx-actions">
+        <button class="nx-btn" id="submitPriorityBtn" disabled>Submit prioritization</button>
+        <button class="nx-btn secondary" id="toMatchingBtn" style="display:none;">Continue to compliance matching →</button>
+      </div>
+      <div class="nx-summary" id="prioritySummary">
+        <div class="verdict" id="prioritySummaryVerdict"></div>
+        <h3 id="prioritySummaryHead"></h3>
+        <p id="prioritySummaryBody" style="margin:0; color: var(--nx-gray-700);"></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ PHASE 3 — COMPLIANCE MATCHING ============ -->
+  <section class="nx-phase" id="phase-3">
+    <div class="nx-card">
+      <div class="nx-section-head">
+        <span class="label">Phase 03 · Compliance Matching</span>
+        <h2>Match each scenario to the right framework</h2>
+        <p>Each scenario falls primarily under one of: HIPAA, PCI DSS, FERPA, or the organization's Internal Governance Policy. Pick the strongest fit.</p>
+      </div>
+      <div class="nx-match-list" id="matchList"></div>
+      <div class="nx-actions">
+        <button class="nx-btn" id="submitMatchBtn" disabled>Submit matches</button>
+        <button class="nx-btn secondary" id="toControlsBtn" style="display:none;">Continue to security controls →</button>
+      </div>
+      <div class="nx-summary" id="matchSummary">
+        <div class="verdict" id="matchSummaryVerdict"></div>
+        <h3 id="matchSummaryHead"></h3>
+        <p id="matchSummaryBody" style="margin:0; color: var(--nx-gray-700);"></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ PHASE 4 — SECURITY CONTROLS ============ -->
+  <section class="nx-phase" id="phase-4">
+    <div class="nx-card">
+      <div class="nx-section-head">
+        <span class="label">Phase 04 · Security Controls</span>
+        <h2>Recommend appropriate controls</h2>
+        <p>For each situation, choose the <strong>two</strong> controls that best reduce the risk. Controls work together — pair people, policy, and technology.</p>
+      </div>
+      <div id="controlsList" style="display:grid; gap: 14px;"></div>
+      <div class="nx-actions">
+        <button class="nx-btn" id="submitControlsBtn" disabled>Submit controls</button>
+        <button class="nx-btn secondary" id="toDashboardBtn" style="display:none;">View governance dashboard →</button>
+      </div>
+      <div class="nx-summary" id="controlsSummary">
+        <div class="verdict" id="controlsSummaryVerdict"></div>
+        <h3 id="controlsSummaryHead"></h3>
+        <p id="controlsSummaryBody" style="margin:0; color: var(--nx-gray-700);"></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ PHASE 5 — FINAL DASHBOARD ============ -->
+  <section class="nx-phase" id="phase-5">
+    <div class="nx-card">
+      <div class="nx-section-head">
+        <span class="label">Phase 05 · Final Governance Summary</span>
+        <h2>Your governance &amp; compliance scorecard</h2>
+        <p>Below is the executive-style dashboard you would present to the Board Audit &amp; Risk Committee.</p>
+      </div>
+
+      <div class="nx-dash-grid">
+        <div class="nx-metric-card accent">
+          <span class="label">Governance Score</span>
+          <div><span class="value" id="governanceScore">0</span><span class="of"> / 100</span></div>
+          <div class="bar"><div class="bar-fill" id="governanceBar"></div></div>
+          <div class="of" id="governanceBand">—</div>
+        </div>
+        <div class="nx-metric-card">
+          <span class="label">Risk Reduction</span>
+          <div><span class="value" id="riskScore">0</span><span class="of"> / 100</span></div>
+          <div class="bar"><div class="bar-fill" id="riskBar"></div></div>
+          <div class="of" id="riskBand">—</div>
+        </div>
+        <div class="nx-metric-card">
+          <span class="label">Compliance Readiness</span>
+          <div><span class="value" id="complianceScore">0</span><span class="of"> / 100</span></div>
+          <div class="bar"><div class="bar-fill" id="complianceBar"></div></div>
+          <div class="of" id="complianceBand">—</div>
+        </div>
+        <div class="nx-metric-card">
+          <span class="label">Control Coverage</span>
+          <div><span class="value" id="controlScore">0</span><span class="of"> / 100</span></div>
+          <div class="bar"><div class="bar-fill" id="controlBar"></div></div>
+          <div class="of" id="controlBand">—</div>
+        </div>
+      </div>
+
+      <div class="nx-improve-card">
+        <span class="label">Areas to strengthen</span>
+        <h3>Priorities for the next quarterly review</h3>
+        <ul class="nx-improve-list" id="improveList"></ul>
+      </div>
+
+      <div class="nx-takeaway">
+        <span class="label">Governance takeaway</span>
+        <p>Strong cybersecurity governance is not the absence of risk — it is the presence of clear ownership, prioritized controls, and evidence of compliance. Today's exercise mirrors the discipline real organizations use to balance operational continuity, privacy obligations, regulatory duties, and organizational risk.</p>
+      </div>
+
+      <div class="nx-actions">
+        <button class="nx-btn yellow" id="restartBtn">Restart simulator</button>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="nx-footer">
+  <p>© Nexford University · AIA3250 · Educational simulation only — no real systems are accessed.</p>
+</footer>
+
+<script>
+/* =========================================================
+   APP DATA
+   =========================================================
+   All data referenced below is scoped strictly to:
+   governance, risk management, regulatory compliance,
+   organizational accountability, data classification, and
+   security requirements — per Module 2 learning content.
+========================================================= */
+
+/* ---- Phase 1 + 2: Risk register (5 risks) -------------- */
+const RISKS = [
+  {
+    id: 'R-01',
+    title: 'Outdated employee passwords',
+    threat: 'Insider misuse / unauthorized access',
+    data: 'Employee HR data; lateral access to clinical systems',
+    impact: 'Compromised accounts could open the door to wider system access and data theft.',
+    compliance: 'Internal Governance Policy (with HIPAA implications if PHI is reached)',
+    priorityCorrect: 'high',
+    priorityWhy: 'Weak credentials are a frequent entry point. They do not directly breach PHI on their own, but they enable nearly every attack that follows — that is why this is High, not Medium.'
+  },
+  {
+    id: 'R-02',
+    title: 'Unencrypted patient records on a shared drive',
+    threat: 'Data exposure',
+    data: 'Patient medical records (PHI)',
+    impact: 'A single device loss or unauthorized access reads protected health information directly.',
+    compliance: 'HIPAA Security Rule — encryption of ePHI at rest',
+    priorityCorrect: 'critical',
+    priorityWhy: 'Unencrypted PHI is the textbook Critical risk: highly sensitive data, direct regulatory exposure under HIPAA, and severe reputational impact. There is no scenario where this is anything less than Critical.'
+  },
+  {
+    id: 'R-03',
+    title: 'DDoS attack on the appointment booking system',
+    threat: 'Distributed Denial-of-Service',
+    data: 'Public website systems and appointment metadata (no PHI directly)',
+    impact: 'Patients cannot book or reschedule. Operationally disruptive, but data is not stolen or altered.',
+    compliance: 'Internal Governance Policy — operational continuity standards',
+    priorityCorrect: 'medium',
+    priorityWhy: 'A DDoS hurts availability and customer trust, but no regulated data is exposed and recovery is well-understood. That makes it Medium — significant, not Critical.'
+  },
+  {
+    id: 'R-04',
+    title: 'Employees failing phishing simulations',
+    threat: 'Phishing / social engineering',
+    data: 'Potentially every data category, depending on which employee is compromised',
+    impact: 'Successful phishing leads to credential theft, ransomware, and unauthorized data access.',
+    compliance: 'Internal Governance Policy (training obligations); indirect HIPAA exposure',
+    priorityCorrect: 'high',
+    priorityWhy: 'Phishing is the most common path to almost every other risk on this register. Organizations rate it High because it amplifies every downstream threat — even if no breach has happened yet.'
+  },
+  {
+    id: 'R-05',
+    title: 'Missing or incomplete audit logs',
+    threat: 'Lack of accountability and detection',
+    data: 'Across all systems — patient, payment, and HR',
+    impact: 'Without logs, the organization cannot detect, investigate, or prove what happened during an incident.',
+    compliance: 'HIPAA audit controls and PCI DSS logging requirements',
+    priorityCorrect: 'high',
+    priorityWhy: 'Audit logs are the backbone of compliance evidence. Missing logs do not breach data on their own, but they make every other control unverifiable, which regulators treat as a serious finding.'
+  }
+];
+
+/* ---- Phase 3: Compliance matching ---------------------- */
+const FRAMEWORKS = ['HIPAA', 'PCI DSS', 'FERPA', 'Internal Governance Policy'];
+const MATCHES = [
+  {
+    scenario: 'Storing electronic patient health records on the clinical database.',
+    correct: 'HIPAA',
+    why: 'HIPAA governs the privacy and security of Protected Health Information (ePHI) held by covered entities like healthcare providers.'
+  },
+  {
+    scenario: 'Accepting credit card payments at the clinic front desk.',
+    correct: 'PCI DSS',
+    why: 'PCI DSS sets the security requirements for any organization that stores, processes, or transmits cardholder data.'
+  },
+  {
+    scenario: "Maintaining academic records for nursing trainees in the organization's training program.",
+    correct: 'FERPA',
+    why: 'FERPA protects the privacy of student education records — applicable here because the organization runs an education program with student academic data.'
+  },
+  {
+    scenario: 'Defining who must approve security exceptions and how leadership reviews risk decisions.',
+    correct: 'Internal Governance Policy',
+    why: 'Oversight, accountability, and leadership decision-making sit inside the organization\'s own governance framework, not under any external regulator.'
+  }
+];
+
+/* ---- Phase 4: Security control challenges -------------- */
+const ALL_CONTROLS = [
+  'MFA',
+  'Encryption',
+  'Security awareness training',
+  'Access restrictions',
+  'Monitoring systems',
+  'Backup procedures'
+];
+const CONTROL_CHALLENGES = [
+  {
+    scenario: 'Patient records are currently stored without encryption on a shared drive accessed by 50+ staff.',
+    hint: 'Pick two — one technical, one organizational.',
+    correct: ['Encryption', 'Access restrictions'],
+    why: 'Encryption protects the data even if the drive is exposed; access restrictions ensure only the staff who need PHI can reach it. Together they enforce confidentiality at both the data and identity layers.'
+  },
+  {
+    scenario: 'Employees keep clicking links in monthly phishing simulations.',
+    hint: 'Pick two — strengthen people and the login.',
+    correct: ['Security awareness training', 'MFA'],
+    why: 'Training reduces how often people fall for phishing; MFA reduces the damage when they do, by making stolen passwords alone insufficient.'
+  },
+  {
+    scenario: 'There is no reliable way to detect or investigate suspicious activity on the patient portal.',
+    hint: 'Pick two — see what is happening, limit who can act.',
+    correct: ['Monitoring systems', 'Access restrictions'],
+    why: 'Monitoring gives the organization visibility and an audit trail; access restrictions keep the number of people who can do sensitive things small enough that monitoring is meaningful.'
+  }
+];
+
+/* =========================================================
+   APP STATE
+   ========================================================= */
+const state = {
+  phase: 0,
+  reviewed: new Set(),                          // risk IDs that have been opened
+  priorities: {},                               // { riskId: 'low'|'medium'|... }
+  prioritySubmitted: false,
+  matches: {},                                  // { matchIndex: 'HIPAA'|... }
+  matchSubmitted: false,
+  controls: {},                                 // { challengeIndex: Set('control name') }
+  controlsSubmitted: false
+};
+
+/* Phase metadata for stepper */
+const PHASES = [
+  { id: 0, label: 'Brief' },
+  { id: 1, label: 'Risk Review' },
+  { id: 2, label: 'Prioritize' },
+  { id: 3, label: 'Compliance' },
+  { id: 4, label: 'Controls' },
+  { id: 5, label: 'Dashboard' }
+];
+
+/* =========================================================
+   RENDER — PHASE STEPPER
+   ========================================================= */
+function renderStepper() {
+  const wrap = document.getElementById('stepper');
+  wrap.innerHTML = '';
+  PHASES.forEach((p, i) => {
+    if (i > 0) {
+      const div = document.createElement('span');
+      div.className = 'nx-step-divider';
+      wrap.appendChild(div);
+    }
+    const el = document.createElement('div');
+    el.className = 'nx-step';
+    if (state.phase === p.id) el.classList.add('is-active');
+    if (state.phase > p.id)   el.classList.add('is-done');
+    el.innerHTML = `
+      <span class="num">${state.phase > p.id ? '✓' : String(p.id).padStart(2,'0')}</span>
+      <span>${p.label}</span>
+    `;
+    wrap.appendChild(el);
+  });
+}
+
+/* =========================================================
+   PHASE NAVIGATION
+   ========================================================= */
+function gotoPhase(n) {
+  document.querySelectorAll('.nx-phase').forEach(el => el.classList.remove('is-visible'));
+  document.getElementById(`phase-${n}`).classList.add('is-visible');
+  state.phase = n;
+  renderStepper();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+/* =========================================================
+   PHASE 1 — RISK REVIEW
+   ========================================================= */
+function renderRisks() {
+  const grid = document.getElementById('riskGrid');
+  grid.innerHTML = '';
+  RISKS.forEach(r => {
+    const card = document.createElement('div');
+    card.className = 'nx-risk-card';
+    card.dataset.id = r.id;
+    card.innerHTML = `
+      <span class="id">${r.id}</span>
+      <div class="title">${r.title}</div>
+      <div class="details">
+        <div class="detail-row"><span class="lbl">Threat type</span>${r.threat}</div>
+        <div class="detail-row"><span class="lbl">Data involved</span>${r.data}</div>
+        <div class="detail-row"><span class="lbl">Operational impact</span>${r.impact}</div>
+        <div class="detail-row"><span class="lbl">Compliance concern</span>${r.compliance}</div>
+      </div>
+      <div class="toggle">Click to expand ▾</div>
+    `;
+    card.addEventListener('click', () => {
+      card.classList.toggle('is-open');
+      card.classList.add('reviewed');
+      state.reviewed.add(r.id);
+      card.querySelector('.toggle').textContent = card.classList.contains('is-open') ? 'Click to collapse ▴' : 'Click to expand ▾';
+      updateReviewProgress();
+    });
+    grid.appendChild(card);
+  });
+}
+function updateReviewProgress() {
+  const n = state.reviewed.size;
+  document.getElementById('reviewProgress').textContent = `${n} of ${RISKS.length} reviewed`;
+  document.getElementById('toPriorityBtn').disabled = n < RISKS.length;
+}
+
+/* =========================================================
+   PHASE 2 — PRIORITIZATION
+   ========================================================= */
+const SEV_LEVELS = [
+  { key: 'low',      label: 'Low' },
+  { key: 'medium',   label: 'Medium' },
+  { key: 'high',     label: 'High' },
+  { key: 'critical', label: 'Critical' }
+];
+function renderPriorities() {
+  const list = document.getElementById('priorityList');
+  list.innerHTML = '';
+  RISKS.forEach(r => {
+    const row = document.createElement('div');
+    row.className = 'nx-priority-row';
+    row.dataset.id = r.id;
+    row.innerHTML = `
+      <div>
+        <div class="risk-meta">${r.id} · ${r.threat}</div>
+        <div class="risk-name">${r.title}</div>
+      </div>
+      <div class="options"></div>
+      <div class="nx-row-feedback"></div>
+    `;
+    const optsBox = row.querySelector('.options');
+    SEV_LEVELS.forEach(s => {
+      const btn = document.createElement('button');
+      btn.className = 'nx-sev-btn';
+      btn.dataset.sev = s.key;
+      btn.type = 'button';
+      btn.innerHTML = `<span class="dot"></span>${s.label}`;
+      btn.addEventListener('click', () => onPriorityPick(r.id, s.key, optsBox, btn));
+      optsBox.appendChild(btn);
+    });
+    list.appendChild(row);
+  });
+}
+function onPriorityPick(riskId, sev, container, btn) {
+  if (state.prioritySubmitted) return;
+  state.priorities[riskId] = sev;
+  Array.from(container.children).forEach(c => c.classList.remove('is-selected'));
+  btn.classList.add('is-selected');
+  document.getElementById('submitPriorityBtn').disabled = Object.keys(state.priorities).length < RISKS.length;
+}
+function submitPriorities() {
+  state.prioritySubmitted = true;
+  let correct = 0;
+  RISKS.forEach(r => {
+    const row = document.querySelector(`.nx-priority-row[data-id="${r.id}"]`);
+    const picked = state.priorities[r.id];
+    const ok = picked === r.priorityCorrect;
+    if (ok) correct++;
+    row.classList.add('is-graded');
+    row.querySelectorAll('.nx-sev-btn').forEach(b => {
+      b.disabled = true;
+      b.classList.remove('is-selected');
+      if (b.dataset.sev === r.priorityCorrect) b.classList.add('is-correct');
+      else if (b.dataset.sev === picked && !ok) b.classList.add('is-wrong');
+    });
+    const fb = row.querySelector('.nx-row-feedback');
+    fb.innerHTML = `<strong>${ok ? 'Correct.' : `Correct answer: ${capitalize(r.priorityCorrect)}.`}</strong> ${r.priorityWhy}`;
+  });
+  // Phase summary
+  const sum = document.getElementById('prioritySummary');
+  sum.classList.add('is-visible');
+  document.getElementById('prioritySummaryVerdict').textContent = `${correct} of ${RISKS.length} correctly prioritized`;
+  document.getElementById('prioritySummaryHead').textContent = correct === RISKS.length
+    ? 'Strong risk-prioritization judgment.'
+    : 'Review the corrections — pay attention to data sensitivity and regulatory exposure.';
+  document.getElementById('prioritySummaryBody').textContent =
+    'Risk ratings should reflect data sensitivity, legal obligations, operational importance, and business impact. PHI exposure is almost always Critical; threats that enable other attacks are High.';
+  document.getElementById('submitPriorityBtn').style.display = 'none';
+  document.getElementById('toMatchingBtn').style.display = 'inline-block';
+}
+function capitalize(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+
+/* =========================================================
+   PHASE 3 — COMPLIANCE MATCHING
+   ========================================================= */
+function renderMatches() {
+  const list = document.getElementById('matchList');
+  list.innerHTML = '';
+  MATCHES.forEach((m, idx) => {
+    const row = document.createElement('div');
+    row.className = 'nx-match-row';
+    row.dataset.idx = idx;
+    row.innerHTML = `
+      <span class="label">Scenario ${String(idx + 1).padStart(2, '0')}</span>
+      <div class="scenario">${m.scenario}</div>
+      <div class="options"></div>
+      <div class="nx-row-feedback" style="display:none; margin-top:10px; font-size:13px; background: var(--nx-gray-50); border-left: 3px solid var(--nx-black); padding: 10px 12px; border-radius: 4px; color: var(--nx-gray-700);"></div>
+    `;
+    const opts = row.querySelector('.options');
+    FRAMEWORKS.forEach(f => {
+      const b = document.createElement('button');
+      b.className = 'nx-match-btn';
+      b.type = 'button';
+      b.textContent = f;
+      b.dataset.fw = f;
+      b.addEventListener('click', () => onMatchPick(idx, f, opts, b));
+      opts.appendChild(b);
+    });
+    list.appendChild(row);
+  });
+}
+function onMatchPick(idx, fw, container, btn) {
+  if (state.matchSubmitted) return;
+  state.matches[idx] = fw;
+  Array.from(container.children).forEach(c => c.classList.remove('is-selected'));
+  btn.classList.add('is-selected');
+  document.getElementById('submitMatchBtn').disabled = Object.keys(state.matches).length < MATCHES.length;
+}
+function submitMatches() {
+  state.matchSubmitted = true;
+  let correct = 0;
+  MATCHES.forEach((m, idx) => {
+    const row = document.querySelector(`.nx-match-row[data-idx="${idx}"]`);
+    const picked = state.matches[idx];
+    const ok = picked === m.correct;
+    if (ok) correct++;
+    row.querySelectorAll('.nx-match-btn').forEach(b => {
+      b.disabled = true;
+      b.classList.remove('is-selected');
+      if (b.dataset.fw === m.correct) b.classList.add('is-correct');
+      else if (b.dataset.fw === picked && !ok) b.classList.add('is-wrong');
+    });
+    const fb = row.querySelector('.nx-row-feedback');
+    fb.style.display = 'block';
+    fb.innerHTML = `<strong>${ok ? 'Correct.' : `Correct answer: ${m.correct}.`}</strong> ${m.why}`;
+  });
+  const sum = document.getElementById('matchSummary');
+  sum.classList.add('is-visible');
+  document.getElementById('matchSummaryVerdict').textContent = `${correct} of ${MATCHES.length} matches correct`;
+  document.getElementById('matchSummaryHead').textContent = correct === MATCHES.length
+    ? 'Compliance mapping looks sharp.'
+    : 'Compliance mapping needs sharpening.';
+  document.getElementById('matchSummaryBody').textContent =
+    'Each external regulation has a clear domain: HIPAA = health data, PCI DSS = payment cards, FERPA = student records. Anything purely internal — accountability, oversight, exception approvals — sits inside Internal Governance Policy.';
+  document.getElementById('submitMatchBtn').style.display = 'none';
+  document.getElementById('toControlsBtn').style.display = 'inline-block';
+}
+
+/* =========================================================
+   PHASE 4 — SECURITY CONTROLS (multi-select, exactly 2)
+   ========================================================= */
+function renderControls() {
+  const list = document.getElementById('controlsList');
+  list.innerHTML = '';
+  CONTROL_CHALLENGES.forEach((c, idx) => {
+    state.controls[idx] = state.controls[idx] || new Set();
+    const row = document.createElement('div');
+    row.className = 'nx-control-row';
+    row.dataset.idx = idx;
+    row.innerHTML = `
+      <span class="label">Challenge ${String(idx + 1).padStart(2, '0')}</span>
+      <div class="scenario">${c.scenario}</div>
+      <div class="hint">${c.hint}</div>
+      <div class="chips"></div>
+      <div class="nx-row-feedback" style="display:none; margin-top:10px; font-size:13px; background: var(--nx-gray-50); border-left: 3px solid var(--nx-black); padding: 10px 12px; border-radius: 4px; color: var(--nx-gray-700);"></div>
+    `;
+    const chipsBox = row.querySelector('.chips');
+    ALL_CONTROLS.forEach(ctrl => {
+      const chip = document.createElement('button');
+      chip.className = 'nx-ctrl-chip';
+      chip.type = 'button';
+      chip.textContent = ctrl;
+      chip.dataset.ctrl = ctrl;
+      chip.addEventListener('click', () => onControlToggle(idx, ctrl, chip));
+      chipsBox.appendChild(chip);
+    });
+    list.appendChild(row);
+  });
+}
+function onControlToggle(idx, ctrl, chip) {
+  if (state.controlsSubmitted) return;
+  const set = state.controls[idx];
+  if (set.has(ctrl)) {
+    set.delete(ctrl);
+    chip.classList.remove('is-selected');
+  } else {
+    if (set.size >= 2) return;          // limit to 2 selections
+    set.add(ctrl);
+    chip.classList.add('is-selected');
+  }
+  // Enable submit when every challenge has exactly 2 picks
+  const allPicked = CONTROL_CHALLENGES.every((_, i) => state.controls[i].size === 2);
+  document.getElementById('submitControlsBtn').disabled = !allPicked;
+}
+function submitControls() {
+  state.controlsSubmitted = true;
+  let totalCorrect = 0;
+  CONTROL_CHALLENGES.forEach((c, idx) => {
+    const row = document.querySelector(`.nx-control-row[data-idx="${idx}"]`);
+    const picked = state.controls[idx];
+    const correctSet = new Set(c.correct);
+    const matched = c.correct.filter(x => picked.has(x)).length;
+    totalCorrect += matched; // 0..2 per challenge
+    row.querySelectorAll('.nx-ctrl-chip').forEach(chip => {
+      chip.disabled = true;
+      chip.classList.remove('is-selected');
+      if (correctSet.has(chip.dataset.ctrl)) chip.classList.add('is-correct');
+      else if (picked.has(chip.dataset.ctrl)) chip.classList.add('is-wrong');
+    });
+    const fb = row.querySelector('.nx-row-feedback');
+    fb.style.display = 'block';
+    const allRight = matched === 2;
+    fb.innerHTML = `<strong>${allRight ? 'Both correct.' : `Best controls: ${c.correct.join(' + ')}.`}</strong> ${c.why}`;
+  });
+  const sum = document.getElementById('controlsSummary');
+  sum.classList.add('is-visible');
+  const max = CONTROL_CHALLENGES.length * 2;
+  document.getElementById('controlsSummaryVerdict').textContent = `${totalCorrect} of ${max} controls correctly chosen`;
+  document.getElementById('controlsSummaryHead').textContent = totalCorrect === max
+    ? 'Layered defense thinking.'
+    : 'Aim for layered controls — never just one technology.';
+  document.getElementById('controlsSummaryBody').textContent =
+    'Strong control selection pairs people, policy, and technology. The right two controls usually cover both prevention (e.g. encryption, restrictions) and detection or resilience (e.g. monitoring, training, MFA).';
+  document.getElementById('submitControlsBtn').style.display = 'none';
+  document.getElementById('toDashboardBtn').style.display = 'inline-block';
+}
+
+/* =========================================================
+   PHASE 5 — FINAL DASHBOARD (scoring + improvements)
+   ========================================================= */
+function renderDashboard() {
+  // ---- Risk Reduction score: % correct prioritizations ----
+  const rCorrect = RISKS.filter(r => state.priorities[r.id] === r.priorityCorrect).length;
+  const riskScore = Math.round((rCorrect / RISKS.length) * 100);
+
+  // ---- Compliance Readiness: % correct framework matches ----
+  const mCorrect = MATCHES.filter((m, i) => state.matches[i] === m.correct).length;
+  const complianceScore = Math.round((mCorrect / MATCHES.length) * 100);
+
+  // ---- Control Coverage: matched / max possible ----
+  let cMatched = 0, cMax = CONTROL_CHALLENGES.length * 2;
+  CONTROL_CHALLENGES.forEach((c, i) => {
+    cMatched += c.correct.filter(x => state.controls[i].has(x)).length;
+  });
+  const controlScore = Math.round((cMatched / cMax) * 100);
+
+  // ---- Governance Score: weighted blend (oversight perspective) ----
+  // Risk Reduction 35% + Compliance 35% + Control 30%
+  const governanceScore = Math.round(
+    riskScore * 0.35 + complianceScore * 0.35 + controlScore * 0.30
+  );
+
+  setMetric('governance', governanceScore);
+  setMetric('risk', riskScore);
+  setMetric('compliance', complianceScore);
+  setMetric('control', controlScore);
+
+  // ---- Areas to strengthen ----
+  const list = document.getElementById('improveList');
+  list.innerHTML = '';
+  const items = [];
+  if (riskScore < 100) {
+    const missed = RISKS.filter(r => state.priorities[r.id] !== r.priorityCorrect);
+    missed.forEach(r => items.push({
+      ok: false,
+      text: `Risk prioritization: revisit "<strong>${r.title}</strong>" — best rated as ${capitalize(r.priorityCorrect)}.`
+    }));
+  }
+  if (complianceScore < 100) {
+    MATCHES.forEach((m, i) => {
+      if (state.matches[i] !== m.correct) items.push({
+        ok: false,
+        text: `Compliance mapping: scenario "${truncate(m.scenario, 70)}" maps to <strong>${m.correct}</strong>.`
+      });
+    });
+  }
+  if (controlScore < 100) {
+    CONTROL_CHALLENGES.forEach((c, i) => {
+      const matched = c.correct.filter(x => state.controls[i].has(x)).length;
+      if (matched < 2) items.push({
+        ok: false,
+        text: `Security controls: pair <strong>${c.correct.join(' + ')}</strong> for "${truncate(c.scenario, 60)}"`
+      });
+    });
+  }
+  if (items.length === 0) {
+    items.push({ ok: true, text: 'No major gaps — present this assessment to the Audit & Risk Committee with confidence.' });
+  }
+  items.forEach(it => {
+    const li = document.createElement('li');
+    if (it.ok) li.classList.add('ok');
+    li.innerHTML = it.text;
+    list.appendChild(li);
+  });
+}
+function setMetric(prefix, score) {
+  document.getElementById(`${prefix}Score`).textContent = score;
+  // Animate the bar
+  setTimeout(() => {
+    document.getElementById(`${prefix}Bar`).style.width = score + '%';
+  }, 60);
+  document.getElementById(`${prefix}Band`).textContent = scoreBand(score);
+}
+function scoreBand(s) {
+  if (s >= 90) return 'Excellent';
+  if (s >= 75) return 'Strong';
+  if (s >= 60) return 'Adequate';
+  if (s >= 40) return 'Needs improvement';
+  return 'Major gaps';
+}
+function truncate(s, n) { return s.length > n ? s.slice(0, n - 1) + '…' : s; }
+
+/* =========================================================
+   RESET — bring app back to a clean intro state
+   ========================================================= */
+function restart() {
+  state.phase = 0;
+  state.reviewed = new Set();
+  state.priorities = {};
+  state.prioritySubmitted = false;
+  state.matches = {};
+  state.matchSubmitted = false;
+  state.controls = {};
+  state.controlsSubmitted = false;
+
+  // Re-render every phase
+  renderRisks();
+  renderPriorities();
+  renderMatches();
+  renderControls();
+
+  // Reset summaries + buttons
+  document.getElementById('prioritySummary').classList.remove('is-visible');
+  document.getElementById('matchSummary').classList.remove('is-visible');
+  document.getElementById('controlsSummary').classList.remove('is-visible');
+  document.getElementById('submitPriorityBtn').style.display = 'inline-block';
+  document.getElementById('submitPriorityBtn').disabled = true;
+  document.getElementById('toMatchingBtn').style.display = 'none';
+  document.getElementById('submitMatchBtn').style.display = 'inline-block';
+  document.getElementById('submitMatchBtn').disabled = true;
+  document.getElementById('toControlsBtn').style.display = 'none';
+  document.getElementById('submitControlsBtn').style.display = 'inline-block';
+  document.getElementById('submitControlsBtn').disabled = true;
+  document.getElementById('toDashboardBtn').style.display = 'none';
+  document.getElementById('reviewProgress').textContent = '0 of 5 reviewed';
+  document.getElementById('toPriorityBtn').disabled = true;
+
+  // Reset dashboard bars
+  ['governance','risk','compliance','control'].forEach(p => {
+    document.getElementById(`${p}Score`).textContent = '0';
+    document.getElementById(`${p}Bar`).style.width = '0%';
+    document.getElementById(`${p}Band`).textContent = '—';
+  });
+
+  gotoPhase(0);
+}
+
+/* =========================================================
+   EVENT WIRING
+   ========================================================= */
+document.getElementById('startBtn').addEventListener('click', () => gotoPhase(1));
+document.getElementById('toPriorityBtn').addEventListener('click', () => gotoPhase(2));
+document.getElementById('submitPriorityBtn').addEventListener('click', submitPriorities);
+document.getElementById('toMatchingBtn').addEventListener('click', () => gotoPhase(3));
+document.getElementById('submitMatchBtn').addEventListener('click', submitMatches);
+document.getElementById('toControlsBtn').addEventListener('click', () => gotoPhase(4));
+document.getElementById('submitControlsBtn').addEventListener('click', submitControls);
+document.getElementById('toDashboardBtn').addEventListener('click', () => {
+  gotoPhase(5);
+  renderDashboard();
+});
+document.getElementById('restartBtn').addEventListener('click', restart);
+
+/* =========================================================
+   BOOT
+   ========================================================= */
+renderStepper();
+renderRisks();
+renderPriorities();
+renderMatches();
+renderControls();
+</script>
+</body>
+</html>
